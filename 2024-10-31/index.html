@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <!-- https://www.douyin.com/user/self?from_tab_name=main&modal_id=7431177658974735616&showTab=favorite_collection -->
+  <!-- 用同步的方式, 实现事件监听 -->
+
+  <!-- 
+    看到 await 最先想到的就是 Promise, 所以不管他是不是死循环, 
+    btn.waitClick 的值一定是 Promise,
+
+    其次, 在循环中不停的 await btn.waitClick, 但是 Promise 只能 resolve 一次
+    那就说明 这个 Promise 是新的
+  -->
+
+  <button>按钮</button>
+  <script>
+
+    const getElement = (selector) => {
+      let element = document.querySelector(selector);;
+
+      const proxy = new Proxy(element, {
+        get(target, prop, receiver) {
+          if (!prop.startsWith('wait')) {
+            return Reflect.get(target, prop, receiver);
+          }
+          return new Promise((resolve) => {
+            const eventName = prop.slice(4).toLowerCase();
+            target.addEventListener(eventName, resolve, { once: true });
+          })
+        }
+      });
+      return proxy;
+    }
+
+    (async () => {
+      const btn = getElement('button');
+      while (1) {
+        await btn.waitClick;
+        console.log('click');
+      }
+    })();
+
+  </script>
+
+</body>
+</html>
